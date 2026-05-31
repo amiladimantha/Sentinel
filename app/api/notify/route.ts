@@ -5,11 +5,24 @@ import path from "path";
 
 const SUBS_FILE = path.join(process.cwd(), "data", "push-subscriptions.json");
 
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL || "mailto:admin@islandwatch.lk",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "",
-  process.env.VAPID_PRIVATE_KEY || ""
-);
+let vapidConfigured = false;
+
+function ensureVapid() {
+  if (vapidConfigured) return;
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!publicKey || !privateKey) {
+    throw new Error(
+      "VAPID keys are not set. Please set NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables."
+    );
+  }
+  webpush.setVapidDetails(
+    process.env.VAPID_EMAIL || "mailto:admin@sentinel.lk",
+    publicKey,
+    privateKey
+  );
+  vapidConfigured = true;
+}
 
 async function readSubscriptions(): Promise<PushSubscriptionJSON[]> {
   try {
@@ -26,6 +39,8 @@ async function writeSubscriptions(subs: PushSubscriptionJSON[]) {
 
 export async function POST(request: Request) {
   try {
+    ensureVapid();
+
     const { title, body, tag, url } = await request.json();
 
     const subs = await readSubscriptions();
