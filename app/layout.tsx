@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Island Watch — Sri Lanka Dashboard",
+  title: "Sentinel — Sri Lanka Dashboard",
   description:
     "A comprehensive real-time dashboard for Sri Lanka covering fuel prices, electricity tariffs, news, exchange rates, and disaster alerts.",
 };

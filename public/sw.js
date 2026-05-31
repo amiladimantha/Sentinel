@@ -1,8 +1,8 @@
-/// Service Worker for Island Watch push notifications
+/// Service Worker for Sentinel push notifications
 
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || "Island Watch";
+  const title = data.title || "Sentinel";
   const options = {
     body: data.body || "New update available",
     icon: "/icon-192.png",

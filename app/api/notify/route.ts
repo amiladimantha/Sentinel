@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     }
 
     const payload = JSON.stringify({
-      title: title || "Island Watch",
+      title: title || "Sentinel",
       body: body || "New update available",
       tag: tag || "iw-general",
       url: url || "/",
