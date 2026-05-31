@@ -1,0 +1,35 @@
+{
+  "prices": {
+    "Petrol 92|Ceypetco": 410,
+    "Auto Diesel|Ceypetco": 392,
+    "Petrol 95|Ceypetco": 470,
+    "Super Diesel|Ceypetco": 458
+  },
+  "history": {
+    "Petrol 92|Ceypetco": [
+      {
+        "date": "2026-05-31",
+        "price": 410
+      }
+    ],
+    "Auto Diesel|Ceypetco": [
+      {
+        "date": "2026-05-31",
+        "price": 392
+      }
+    ],
+    "Petrol 95|Ceypetco": [
+      {
+        "date": "2026-05-31",
+        "price": 470
+      }
+    ],
+    "Super Diesel|Ceypetco": [
+      {
+        "date": "2026-05-31",
+        "price": 458
+      }
+    ]
+  },
+  "lastUpdated": "2026-05-02T00:00:00.000Z"
+}

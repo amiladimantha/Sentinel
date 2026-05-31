@@ -1,0 +1,44 @@
+{
+  "appName": "Island Watch",
+  "nav": {
+    "dashboard": "Dashboard",
+    "language": "Language"
+  },
+  "modules": {
+    "fuelTracker": "Fuel Price Tracker",
+    "electricity": "Electricity Monitor",
+    "newsFeed": "Live News Feed",
+    "exchangeRates": "Exchange Rates",
+    "disasterAlerts": "Disaster Alerts"
+  },
+  "fuel": {
+    "lastUpdated": "Last updated",
+    "perLitre": "per litre",
+    "provider": "Provider"
+  },
+  "news": {
+    "all": "All",
+    "accidents": "Accidents",
+    "finance": "Finance",
+    "general": "General",
+    "readMore": "Read more"
+  },
+  "exchange": {
+    "currency": "Currency",
+    "buying": "Buying",
+    "selling": "Selling",
+    "source": "Central Bank of Sri Lanka"
+  },
+  "disaster": {
+    "activeAlerts": "Active Alerts",
+    "affectedAreas": "Affected areas",
+    "noAlerts": "No active disaster alerts"
+  },
+  "electricity": {
+    "currentTariffs": "Current Tariffs",
+    "priceHistory": "Price Hike History",
+    "category": "Category",
+    "units": "Units",
+    "rate": "Rate (LKR/kWh)"
+  }
+}

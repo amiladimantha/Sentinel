@@ -1,0 +1,46 @@
+{
+  "banks": [
+    {
+      "bank": "Bank of Ceylon",
+      "shortName": "BOC",
+      "rates": {
+        "3m": 6.75,
+        "6m": 7,
+        "12m": 7.25,
+        "24m": 7.5
+      }
+    },
+    {
+      "bank": "People's Bank",
+      "shortName": "People's",
+      "rates": {
+        "3m": 6.25,
+        "6m": 6.5,
+        "12m": 6.75,
+        "24m": 7
+      }
+    },
+    {
+      "bank": "Commercial Bank",
+      "shortName": "ComBank",
+      "rates": {
+        "3m": 9,
+        "6m": 9.75,
+        "12m": 10,
+        "24m": 11
+      }
+    },
+    {
+      "bank": "Nations Trust Bank",
+      "shortName": "NTB",
+      "rates": {
+        "3m": 7.5,
+        "6m": 7.75,
+        "12m": 8,
+        "24m": 9
+      }
+    }
+  ],
+  "lastVerified": "2026-05-31",
+  "source": "Live rates from bank websites"
+}

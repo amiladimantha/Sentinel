@@ -1,0 +1,95 @@
+{
+  "rates": {
+    "USD": {
+      "buying": 322.95,
+      "selling": 332.79
+    },
+    "GBP": {
+      "buying": 432.78,
+      "selling": 445.96
+    },
+    "EUR": {
+      "buying": 374.95,
+      "selling": 386.37
+    },
+    "INR": {
+      "buying": 3.42,
+      "selling": 3.52
+    },
+    "AUD": {
+      "buying": 230.52,
+      "selling": 237.54
+    },
+    "SAR": {
+      "buying": 85.7,
+      "selling": 88.31
+    },
+    "JPY": {
+      "buying": 2.04,
+      "selling": 2.1
+    },
+    "CAD": {
+      "buying": 235.25,
+      "selling": 242.42
+    }
+  },
+  "history": {
+    "USD": [
+      {
+        "date": "2026-05-31",
+        "buying": 322.95,
+        "selling": 332.79
+      }
+    ],
+    "GBP": [
+      {
+        "date": "2026-05-31",
+        "buying": 432.78,
+        "selling": 445.96
+      }
+    ],
+    "EUR": [
+      {
+        "date": "2026-05-31",
+        "buying": 374.95,
+        "selling": 386.37
+      }
+    ],
+    "INR": [
+      {
+        "date": "2026-05-31",
+        "buying": 3.42,
+        "selling": 3.52
+      }
+    ],
+    "AUD": [
+      {
+        "date": "2026-05-31",
+        "buying": 230.52,
+        "selling": 237.54
+      }
+    ],
+    "SAR": [
+      {
+        "date": "2026-05-31",
+        "buying": 85.7,
+        "selling": 88.31
+      }
+    ],
+    "JPY": [
+      {
+        "date": "2026-05-31",
+        "buying": 2.04,
+        "selling": 2.1
+      }
+    ],
+    "CAD": [
+      {
+        "date": "2026-05-31",
+        "buying": 235.25,
+        "selling": 242.42
+      }
+    ]
+  },
+  "lastUpdated": "2026-05-31T00:02:31.000Z"
+}

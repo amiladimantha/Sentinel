@@ -1,0 +1,66 @@
+{
+  "schemes": {
+    "low": {
+      "label": "≤60 kWh/month",
+      "maxUnits": 60,
+      "blocks": [
+        {
+          "units": "0-30 kWh",
+          "rate": 5,
+          "fixedCharge": 80
+        },
+        {
+          "units": "31-60 kWh",
+          "rate": 9,
+          "fixedCharge": 210
+        }
+      ]
+    },
+    "mid": {
+      "label": "61–180 kWh/month",
+      "maxUnits": 180,
+      "blocks": [
+        {
+          "units": "0-60 kWh",
+          "rate": 14,
+          "fixedCharge": 0
+        },
+        {
+          "units": "61-90 kWh",
+          "rate": 20,
+          "fixedCharge": 400
+        },
+        {
+          "units": "91-120 kWh",
+          "rate": 28,
+          "fixedCharge": 1000
+        },
+        {
+          "units": "121-180 kWh",
+          "rate": 44,
+          "fixedCharge": 1500
+        }
+      ]
+    },
+    "high": {
+      "label": ">180 kWh/month",
+      "maxUnits": null,
+      "blocks": [
+        {
+          "units": "0-180 kWh",
+          "rate": 32.5,
+          "fixedCharge": 0
+        },
+        {
+          "units": "181+ kWh",
+          "rate": 100,
+          "fixedCharge": 2500
+        }
+      ]
+    }
+  },
+  "effectiveDate": "2026-05-11",
+  "source": "PUCSL Calculator (pucsl.gov.lk/calculator)",
+  "hikeHistory": [],
+  "lastUpdated": "2026-05-31T16:43:48.702Z"
+}

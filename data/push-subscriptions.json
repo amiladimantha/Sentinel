@@ -1,0 +1,10 @@
+[
+  {
+    "endpoint": "https://wns2-par02p.notify.windows.com/w/?token=BQYAAADIDXZUIL0ngUJkzVSLNufvw%2bheLSegfQGZPz%2bzXSexJ%2fnPJQpAcIPZiLZmchXJ69LsVrUMRZyiS5bIme00M%2fvYpm0HWFsMN1nA9ZTnKj6m4iLtmsHlY1xuwfJ0hTZc2vaik2M2eD1GgVd%2bpS3U13BMVf5QQsYAuAiz17%2f09OZnp3SLlPM6R%2bXddPLD32bGqZVxIaripVe7l%2btTw9fZpg%2f4XEiWzk92PrHEayiNoFJxVV3k8U1a6sU8J8WApVq5FhkB3aL2gg144sNKgeQMDnoqBVYqoL5ygH2%2f6S8sF4V06ZKbKoQjCfuSrDK2p4nFbNjpSCOfLHlL6G3fG%2fUitDCl",
+    "expirationTime": null,
+    "keys": {
+      "p256dh": "BCOdGIBak4a9CNN9qCXoP8xXqwVnjFrKjJkPZkR5-tvXJ5-mJ5tGhQg3gURfc8J1eSTqz_SkNfTrHwgBnvf9QzM",
+      "auth": "M51734VxpUoL8yXyqZf4vA"
+    }
+  }
+]
