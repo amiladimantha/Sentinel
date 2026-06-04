@@ -1,13 +1,13 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import type { FDRateData, FDRate } from "@/lib/types";
 
 const DATA_FILE = join(process.cwd(), "data", "fd-rates.json");
 const CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours
 
-function readCache(): FDRateData | null {
+async function readCache(): Promise<FDRateData | null> {
   try {
-    const raw = readFileSync(DATA_FILE, "utf-8");
+    const raw = await readFile(DATA_FILE, "utf-8");
     const data: FDRateData = JSON.parse(raw);
     const age = Date.now() - new Date(data.lastVerified).getTime();
     if (age < CACHE_MAX_AGE) return data;
@@ -15,9 +15,9 @@ function readCache(): FDRateData | null {
   return null;
 }
 
-function writeCache(data: FDRateData) {
+async function writeCache(data: FDRateData): Promise<void> {
   try {
-    writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    await writeFile(DATA_FILE, JSON.stringify(data, null, 2));
   } catch {}
 }
 
@@ -165,9 +165,9 @@ async function scrapeNTB(): Promise<FDRate | null> {
 }
 
 // --- Fallback banks from cached JSON ---
-function getFallbackBanks(): FDRate[] {
+async function getFallbackBanks(): Promise<FDRate[]> {
   try {
-    const raw = readFileSync(DATA_FILE, "utf-8");
+    const raw = await readFile(DATA_FILE, "utf-8");
     const data: FDRateData = JSON.parse(raw);
     return data.banks;
   } catch {
@@ -177,7 +177,7 @@ function getFallbackBanks(): FDRate[] {
 
 export async function getFDRates(): Promise<FDRateData> {
   // Return cache if fresh
-  const cached = readCache();
+  const cached = await readCache();
   if (cached) return cached;
 
   // Scrape live sources in parallel
@@ -188,7 +188,7 @@ export async function getFDRates(): Promise<FDRateData> {
     scrapeNTB(),
   ]);
 
-  const fallback = getFallbackBanks();
+  const fallback = await getFallbackBanks();
   const banks: FDRate[] = [];
 
   // BOC: live or fallback
@@ -229,6 +229,6 @@ export async function getFDRates(): Promise<FDRateData> {
     source: "Live rates from bank websites",
   };
 
-  writeCache(result);
+  await writeCache(result);
   return result;
 }

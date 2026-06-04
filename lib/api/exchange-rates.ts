@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import type { ExchangeRate } from "@/lib/types";
 
@@ -22,9 +22,9 @@ interface StoredRateData {
   lastUpdated: string;
 }
 
-function readStoredRates(): StoredRateData {
+async function readStoredRates(): Promise<StoredRateData> {
   try {
-    const raw = readFileSync(DATA_FILE, "utf-8");
+    const raw = await readFile(DATA_FILE, "utf-8");
     const parsed = JSON.parse(raw);
     return {
       rates: parsed.rates ?? {},
@@ -36,8 +36,12 @@ function readStoredRates(): StoredRateData {
   }
 }
 
-function writeStoredRates(data: StoredRateData): void {
-  writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+async function writeStoredRates(data: StoredRateData): Promise<void> {
+  try {
+    await writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+  } catch {
+    // non-critical
+  }
 }
 
 /**
@@ -47,7 +51,7 @@ function writeStoredRates(data: StoredRateData): void {
  */
 export async function getExchangeRates(): Promise<ExchangeRate[]> {
   try {
-    const res = await fetch(ER_API_URL, { next: { revalidate: 900 } });
+    const res = await fetch(ER_API_URL, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
     if (!res.ok) return [];
 
     const json = await res.json();
@@ -57,7 +61,7 @@ export async function getExchangeRates(): Promise<ExchangeRate[]> {
       ? new Date(json.time_last_update_utc).toISOString()
       : new Date().toISOString();
 
-    const stored = readStoredRates();
+    const stored = await readStoredRates();
     const newStored: StoredRateData = { rates: {}, history: { ...stored.history }, lastUpdated };
     const today = new Date().toISOString().slice(0, 10);
 
@@ -103,7 +107,7 @@ export async function getExchangeRates(): Promise<ExchangeRate[]> {
     });
 
     // Write updated rates
-    writeStoredRates(newStored);
+    await writeStoredRates(newStored);
 
     return results;
   } catch {

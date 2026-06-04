@@ -19,6 +19,7 @@ export async function getLoadSheddingStatus(): Promise<LoadSheddingStatus> {
   try {
     const res = await fetch(CEB_NEWS_URL, {
       next: { revalidate: 900 },
+      signal: AbortSignal.timeout(10000),
       headers: { "User-Agent": "IslandWatch/1.0 (dashboard; contact@example.com)" },
     });
     if (!res.ok) return inactive();

@@ -17,7 +17,7 @@ interface MeteoAdvisory {
  */
 export async function getDisasterAlerts(): Promise<DisasterAlert[]> {
   try {
-    const res = await fetch(CONTENT_JSON_URL, { next: { revalidate: 900 } });
+    const res = await fetch(CONTENT_JSON_URL, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
     if (!res.ok) return [];
 
     const json = await res.json();

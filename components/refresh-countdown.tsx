@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 
@@ -9,14 +9,12 @@ const REVALIDATE_SECONDS = 900; // 15 minutes
 export function RefreshCountdown() {
   const router = useRouter();
   const [secondsLeft, setSecondsLeft] = useState(REVALIDATE_SECONDS);
-  const shouldRefresh = useRef(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
-          shouldRefresh.current = true;
-          return REVALIDATE_SECONDS;
+          return 0;
         }
         return prev - 1;
       });
@@ -25,11 +23,11 @@ export function RefreshCountdown() {
   }, []);
 
   useEffect(() => {
-    if (shouldRefresh.current) {
-      shouldRefresh.current = false;
+    if (secondsLeft === 0) {
       router.refresh();
+      setSecondsLeft(REVALIDATE_SECONDS);
     }
-  });
+  }, [secondsLeft, router]);
 
   const handleClick = () => {
     router.refresh();

@@ -65,12 +65,14 @@ export function WeatherWidget({ defaultCities }: WeatherWidgetProps) {
       setCustomWeather([]);
       return;
     }
+    const controller = new AbortController();
     const params =
       "current=temperature_2m,relative_humidity_2m,weather_code,precipitation,wind_speed_10m&timezone=Asia%2FColombo";
     const results = await Promise.all(
       cities.map(({ name, lat, lon }) =>
         fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&${params}`
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&${params}`,
+          { signal: controller.signal }
         )
           .then((r) => r.json())
           .then((d) => ({
@@ -85,10 +87,13 @@ export function WeatherWidget({ defaultCities }: WeatherWidgetProps) {
       )
     );
     setCustomWeather(results.filter((r): r is WeatherCity => r !== null));
+    return controller;
   }, []);
 
   useEffect(() => {
-    fetchCustomWeather(customCities);
+    let controller: AbortController | undefined;
+    fetchCustomWeather(customCities).then((c) => { controller = c; });
+    return () => { controller?.abort(); };
   }, [customCities, fetchCustomWeather]);
 
   // Debounced geocoding search
@@ -111,6 +116,7 @@ export function WeatherWidget({ defaultCities }: WeatherWidgetProps) {
         setSearchResults([]);
       }
       setIsSearching(false);
+      searchTimeout.current = null;
     }, 300);
   };
 

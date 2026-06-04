@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import type { FuelPrice } from "@/lib/types";
 
@@ -19,9 +19,9 @@ interface StoredFuelData {
   lastUpdated: string;
 }
 
-function readStoredPrices(): StoredFuelData {
+async function readStoredPrices(): Promise<StoredFuelData> {
   try {
-    const raw = readFileSync(DATA_FILE, "utf-8");
+    const raw = await readFile(DATA_FILE, "utf-8");
     const parsed = JSON.parse(raw);
     return {
       prices: parsed.prices ?? {},
@@ -33,9 +33,9 @@ function readStoredPrices(): StoredFuelData {
   }
 }
 
-function writeStoredPrices(data: StoredFuelData): void {
+async function writeStoredPrices(data: StoredFuelData): Promise<void> {
   try {
-    writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+    await writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
   } catch {
     // non-critical, ignore write errors
   }
@@ -48,7 +48,7 @@ function writeStoredPrices(data: StoredFuelData): void {
  */
 export async function getFuelPrices(): Promise<FuelPrice[]> {
   try {
-    const res = await fetch(CEYPETCO_URL, { next: { revalidate: 900 } });
+    const res = await fetch(CEYPETCO_URL, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
     if (!res.ok) return [];
 
     const html = await res.text();
@@ -62,7 +62,7 @@ export async function getFuelPrices(): Promise<FuelPrice[]> {
     const cardPattern =
       /<h3 class="fuel-name">([^<]+)<\/h3>[\s\S]*?<span class="price-currency">Rs\.<\/span>\s*([\d,.]+)/gi;
 
-    const stored = readStoredPrices();
+    const stored = await readStoredPrices();
     const newPrices: Record<string, number> = {};
     const newHistory: Record<string, { date: string; price: number }[]> = { ...stored.history };
     const today = new Date().toISOString().slice(0, 10);
@@ -109,10 +109,10 @@ export async function getFuelPrices(): Promise<FuelPrice[]> {
 
     // Persist new prices if they changed or first run
     if (prices.length > 0 && (hasChanged || !stored.lastUpdated)) {
-      writeStoredPrices({ prices: newPrices, history: newHistory, lastUpdated: effectiveDate });
+      await writeStoredPrices({ prices: newPrices, history: newHistory, lastUpdated: effectiveDate });
     } else if (prices.length > 0) {
       // Always write history (daily snapshot may be new)
-      writeStoredPrices({ prices: newPrices, history: newHistory, lastUpdated: stored.lastUpdated });
+      await writeStoredPrices({ prices: newPrices, history: newHistory, lastUpdated: stored.lastUpdated });
     }
 
     return prices;

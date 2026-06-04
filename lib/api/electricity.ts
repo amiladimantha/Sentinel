@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import type { ElectricityTariff, ElectricityHikeHistory } from "@/lib/types";
 
@@ -24,18 +24,18 @@ interface StoredElectricityData {
   lastUpdated: string;
 }
 
-function readStoredData(): StoredElectricityData | null {
+async function readStoredData(): Promise<StoredElectricityData | null> {
   try {
-    const raw = readFileSync(DATA_FILE, "utf-8");
+    const raw = await readFile(DATA_FILE, "utf-8");
     return JSON.parse(raw);
   } catch {
     return null;
   }
 }
 
-function writeStoredData(data: StoredElectricityData): void {
+async function writeStoredData(data: StoredElectricityData): Promise<void> {
   try {
-    writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+    await writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
   } catch {
     // non-critical, ignore write errors
   }
@@ -219,7 +219,7 @@ function buildTariffList(
  * Falls back to the last successfully stored data in electricity-rates.json.
  */
 export async function getElectricityTariffs(): Promise<ElectricityTariff[]> {
-  const stored = readStoredData();
+  const stored = await readStoredData();
 
   try {
     const live = await fetchPUCSLTariffData();
@@ -228,7 +228,7 @@ export async function getElectricityTariffs(): Promise<ElectricityTariff[]> {
       const storedJson = stored ? JSON.stringify(stored.schemes) : "";
 
       if (liveJson !== storedJson || live.effectiveDate !== stored?.effectiveDate) {
-        writeStoredData({
+        await writeStoredData({
           schemes: live.schemes,
           effectiveDate: live.effectiveDate,
           source: live.source,
@@ -253,7 +253,7 @@ export async function getElectricityTariffs(): Promise<ElectricityTariff[]> {
 export async function getElectricityHikeHistory(): Promise<
   ElectricityHikeHistory[]
 > {
-  const stored = readStoredData();
+  const stored = await readStoredData();
   if (stored && stored.hikeHistory.length >= 2) {
     return stored.hikeHistory;
   }
@@ -273,7 +273,7 @@ export async function getElectricityHikeHistory(): Promise<
       const history: ElectricityHikeHistory[] = [{ month, rate: avg }];
 
       if (stored) {
-        writeStoredData({
+        await writeStoredData({
           ...stored,
           hikeHistory: history,
           lastUpdated: new Date().toISOString(),

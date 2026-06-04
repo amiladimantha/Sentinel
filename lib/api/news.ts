@@ -11,7 +11,7 @@ export async function getNewsItems(
   category?: "accidents" | "finance" | "general"
 ): Promise<NewsItem[]> {
   try {
-    const res = await fetch(ADA_DERANA_RSS, { next: { revalidate: 900 } });
+    const res = await fetch(ADA_DERANA_RSS, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
     if (!res.ok) return [];
 
     const xml = await res.text();

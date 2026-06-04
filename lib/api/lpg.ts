@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
 import type { LPGPrice } from "@/lib/types";
 
@@ -11,9 +11,9 @@ interface StoredLPGData {
   lastUpdated: string;
 }
 
-function readStoredData(): StoredLPGData {
+async function readStoredData(): Promise<StoredLPGData> {
   try {
-    const raw = readFileSync(DATA_FILE, "utf-8");
+    const raw = await readFile(DATA_FILE, "utf-8");
     const parsed = JSON.parse(raw);
     return {
       prices: parsed.prices ?? {},
@@ -25,9 +25,9 @@ function readStoredData(): StoredLPGData {
   }
 }
 
-function writeStoredData(data: StoredLPGData): void {
+async function writeStoredData(data: StoredLPGData): Promise<void> {
   try {
-    writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+    await writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
   } catch {
     // non-critical
   }
@@ -47,11 +47,11 @@ const SIZE_ORDER = ["12.5kg", "5kg"];
  */
 export async function getLPGPrices(): Promise<LPGPrice[]> {
   try {
-    const res = await fetch(LAUGFS_URL, { next: { revalidate: 900 } });
+    const res = await fetch(LAUGFS_URL, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
     if (!res.ok) return getFallbackPrices();
 
     const html = await res.text();
-    const stored = readStoredData();
+    const stored = await readStoredData();
     const today = new Date().toISOString().slice(0, 10);
 
     // The site renders a table with labels in one row and prices in the next:
@@ -92,7 +92,7 @@ export async function getLPGPrices(): Promise<LPGPrice[]> {
     }
 
     if (hasChanged || !stored.lastUpdated) {
-      writeStoredData({ prices: newPrices, history: newHistory, lastUpdated: today });
+      await writeStoredData({ prices: newPrices, history: newHistory, lastUpdated: today });
     }
 
     return buildPriceList(newPrices, stored.prices, newHistory, today);
@@ -101,8 +101,8 @@ export async function getLPGPrices(): Promise<LPGPrice[]> {
   }
 }
 
-function getFallbackPrices(): LPGPrice[] {
-  const stored = readStoredData();
+async function getFallbackPrices(): Promise<LPGPrice[]> {
+  const stored = await readStoredData();
   if (!Object.keys(stored.prices).length) return [];
   return buildPriceList(stored.prices, stored.prices, stored.history, stored.lastUpdated);
 }
