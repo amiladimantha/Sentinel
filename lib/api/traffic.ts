@@ -12,13 +12,13 @@ export async function getTrafficNotices(): Promise<TrafficNotice[]> {
     if (!res.ok) return [];
     const html = await res.text();
 
-    // Extract accordion heading items — each has title= attribute and data-id
-    const headingRe =
-      /<div[^>]*class="[^"]*accordion-heading[^"]*"[^>]*>[\s\S]*?<a[^>]+title="([^"]+)"[^>]+data-id="([^"]+)"/g;
+    // Extract accordion panels — heading + inner body pairs
+    const panelRe =
+      /<div[^>]*class="[^"]*accordion-heading[^"]*"[^>]*>[\s\S]*?<a[^>]+title="([^"]+)"[^>]+data-id="([^"]+)"[\s\S]*?<div[^>]*class="[^"]*accordion-inner[^"]*"[^>]*>([\s\S]*?)(?=<div[^>]*class="[^"]*accordion-heading|$)/g;
     const notices: TrafficNotice[] = [];
     let m: RegExpExecArray | null;
 
-    while ((m = headingRe.exec(html)) !== null) {
+    while ((m = panelRe.exec(html)) !== null) {
       const raw = m[1].trim();
       // Decode HTML entities
       const title = raw
@@ -28,13 +28,27 @@ export async function getTrafficNotices(): Promise<TrafficNotice[]> {
         .replace(/&quot;/g, '"')
         .replace(/&#039;/g, "'");
       const id = m[2].trim();
+      const body = m[3] || "";
 
       if (!title || title.length < 4) continue;
+
+      // Extract date from PDF filename (e.g. 2026_05_13_...pdf)
+      let publishedAt: string | undefined;
+      const dateMatch = body.match(/(\d{4})[_\-](\d{2})[_\-](\d{2})/);  
+      if (dateMatch) {
+        const [, y, mo, d] = dateMatch;
+        const parsed = new Date(`${y}-${mo}-${d}`);
+        if (!isNaN(parsed.getTime())) {
+          publishedAt = parsed.toISOString();
+        }
+      }
+
       notices.push({
         id: `rda-${id}`,
         title,
         url: RDA_URL + `#${id}`,
         source: "RDA",
+        publishedAt,
       });
     }
 

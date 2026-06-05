@@ -1,10 +1,10 @@
 [
   {
-    "endpoint": "https://wns2-par02p.notify.windows.com/w/?token=BQYAAADIDXZUIL0ngUJkzVSLNufvw%2bheLSegfQGZPz%2bzXSexJ%2fnPJQpAcIPZiLZmchXJ69LsVrUMRZyiS5bIme00M%2fvYpm0HWFsMN1nA9ZTnKj6m4iLtmsHlY1xuwfJ0hTZc2vaik2M2eD1GgVd%2bpS3U13BMVf5QQsYAuAiz17%2f09OZnp3SLlPM6R%2bXddPLD32bGqZVxIaripVe7l%2btTw9fZpg%2f4XEiWzk92PrHEayiNoFJxVV3k8U1a6sU8J8WApVq5FhkB3aL2gg144sNKgeQMDnoqBVYqoL5ygH2%2f6S8sF4V06ZKbKoQjCfuSrDK2p4nFbNjpSCOfLHlL6G3fG%2fUitDCl",
+    "endpoint": "https://wns2-db5p.notify.windows.com/w/?token=BQYAAABm6UNCEELOVcaOgu7eknDz1Xus9QUoU7yTfd5QLx2%2fVByVnJj6xTjC6ByuvhzcsGrYJPxDLgQwwOuo4epGN5uTUHi76XhGWaSBs1yAc3v29vxVI31MDyksd%2bT63eX30Izkj85NpCc%2fROjB%2bHbGPoJszCCQiKe12K2cms%2fIRrDAyT0zfo8znJ%2ftczRiVBbEY%2f2A7RPX2zIK6XuLzIEf9ItVM0OC8lYdA75poK7nRoe7LyrxWG%2b0o%2fQpnAUyI2vdk4k17DL8VpF%2fLPanXTFnYTQC%2bI%2boIe%2bwqVmZGmBEC9qPyJdI%2bXGVrdfBveIZHFF8nVM%3d",
     "expirationTime": null,
     "keys": {
-      "p256dh": "BCOdGIBak4a9CNN9qCXoP8xXqwVnjFrKjJkPZkR5-tvXJ5-mJ5tGhQg3gURfc8J1eSTqz_SkNfTrHwgBnvf9QzM",
-      "auth": "M51734VxpUoL8yXyqZf4vA"
+      "p256dh": "BAVLGgWY_tIzidXMx6x9naJbbgLniqNtMxaB_h56AlsHmFVGpu9_Y0460vznKTRlryn6TT5hPMgqwdX6q8DSh-8",
+      "auth": "ZvARwXJ8nsjlJM5xS2t2ZQ"
     }
   }
 ]

@@ -13,6 +13,7 @@ import { CurrencyConverterServer } from "@/components/currency-converter-server"
 import { LoadShedding } from "@/components/load-shedding";
 import { WeatherWidgetServer } from "@/components/weather-widget-server";
 import { CricketWidget } from "@/components/cricket-widget";
+import { LastMatchCard } from "@/components/last-match-card";
 import { UpcomingMatches } from "@/components/upcoming-matches";
 import { FDRatesWidget } from "@/components/fd-rates-widget";
 import { RiskMapServer } from "@/components/risk-map-server";
@@ -114,8 +115,9 @@ export default async function Home() {
         </div>
       }
       sports={
-        <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+        <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
           <CricketWidget />
+          <LastMatchCard />
           <UpcomingMatches />
         </div>
       }

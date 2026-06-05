@@ -34,7 +34,7 @@ export async function UpcomingMatches() {
   const matches = await getUpcomingSLMatches();
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow">
+    <Card className="shadow-sm hover:shadow-md transition-shadow lg:max-h-[34rem] lg:flex lg:flex-col">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
@@ -43,7 +43,7 @@ export async function UpcomingMatches() {
           <span>Upcoming Matches</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2 lg:min-h-0 lg:flex-1 lg:flex lg:flex-col">
         {matches.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-center space-y-3">
             <span className="text-3xl">📅</span>
@@ -59,60 +59,62 @@ export async function UpcomingMatches() {
         ) : (
           <>
             {matches.length > 0 && (
-              <p className="text-xs text-muted-foreground mb-1">
+              <p className="text-xs text-muted-foreground mb-1 shrink-0">
                 {matches[0].seriesName}
               </p>
             )}
-            {matches.map((match) => (
-              <a
-                key={match.matchId}
-                href={`https://www.espncricinfo.com/match/${match.slug}-${match.matchId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block rounded-xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-950/20 p-3 hover:bg-blue-50/80 dark:hover:bg-blue-950/40 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">
-                        SL vs {match.opponentShort}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] px-1.5 py-0 ${FORMAT_COLORS[match.format] ?? ""}`}
-                      >
-                        {match.format}
-                      </Badge>
+            <div className="space-y-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
+              {matches.map((match) => (
+                <a
+                  key={match.matchId}
+                  href={`https://www.espncricinfo.com/match/${match.slug}-${match.matchId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-950/20 p-3 hover:bg-blue-50/80 dark:hover:bg-blue-950/40 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">
+                          SL vs {match.opponentShort}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] px-1.5 py-0 ${FORMAT_COLORS[match.format] ?? ""}`}
+                        >
+                          {match.format}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {match.matchDesc}
+                      </p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground/80">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">
+                          {match.venue}
+                          {match.city ? `, ${match.city}` : ""}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {match.matchDesc}
-                    </p>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground/80">
-                      <MapPin className="h-3 w-3 shrink-0" />
-                      <span className="truncate">
-                        {match.venue}
-                        {match.city ? `, ${match.city}` : ""}
-                      </span>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-medium">
+                        {formatMatchDate(match.startTime ?? match.startDate)}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {match.isTimeAnnounced
+                          ? formatMatchTime(match.startTime!)
+                          : "Time TBA"}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-xs font-medium">
-                      {formatMatchDate(match.startTime ?? match.startDate)}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {match.isTimeAnnounced
-                        ? formatMatchTime(match.startTime!)
-                        : "Time TBA"}
-                    </p>
-                  </div>
-                </div>
-              </a>
-            ))}
+                </a>
+              ))}
+            </div>
             <a
               href="https://www.espncricinfo.com/team/sri-lanka-8/match-schedule-fixtures-and-results"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1 text-xs text-primary hover:underline pt-1"
+              className="flex items-center justify-center gap-1 text-xs text-primary hover:underline pt-1 shrink-0"
             >
               Full schedule on ESPNcricinfo
               <ExternalLink className="h-3 w-3" />

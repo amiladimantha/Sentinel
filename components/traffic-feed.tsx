@@ -44,9 +44,16 @@ export async function TrafficFeed() {
                   className="flex items-start gap-2.5 rounded-lg border border-yellow-200 dark:border-yellow-900/50 bg-yellow-50/60 dark:bg-yellow-950/20 px-3 py-2.5 hover:bg-yellow-100/80 dark:hover:bg-yellow-950/40 transition-colors group"
                 >
                   <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0 text-yellow-600 dark:text-yellow-400" />
-                  <span className="text-xs font-medium leading-snug line-clamp-2 group-hover:text-yellow-700 dark:group-hover:text-yellow-300">
-                    {n.title}
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-medium leading-snug line-clamp-2 group-hover:text-yellow-700 dark:group-hover:text-yellow-300">
+                      {n.title}
+                    </span>
+                    {n.publishedAt && (
+                      <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                        {new Date(n.publishedAt).toLocaleDateString("en-LK", { year: "numeric", month: "short", day: "numeric" })}
+                      </span>
+                    )}
+                  </div>
                 </a>
               </li>
             ))}

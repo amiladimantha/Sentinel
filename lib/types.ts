@@ -23,6 +23,27 @@ export interface CricketMatch {
   isLive: boolean;
 }
 
+export interface RecentCricketMatch {
+  matchId: number;
+  slug: string;
+  seriesName: string;
+  matchDesc: string;
+  format: string;
+  startDate: string;
+  startTime: string | null;
+  endDate: string;
+  opponent: string;
+  opponentShort: string;
+  venue: string;
+  city: string;
+  statusText: string;
+  outcome: "won" | "lost" | "draw" | "no-result" | "completed";
+  sriLankaScore: string;
+  sriLankaScoreInfo: string;
+  opponentScore: string;
+  opponentScoreInfo: string;
+}
+
 export interface FDRate {
   bank: string;
   shortName: string;
@@ -95,6 +116,7 @@ export interface TrafficNotice {
   description?: string;
   url: string;
   source: "RDA";
+  publishedAt?: string;
 }
 
 export interface WaterNotice {

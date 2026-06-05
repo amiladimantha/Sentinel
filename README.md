@@ -69,16 +69,16 @@ The dashboard is organized into **6 purpose-driven tabs**:
 | Fuel prices | Ceypetco |
 | LPG prices | Litro Gas / Laugfs Gas |
 | Electricity tariffs | CEB (Ceylon Electricity Board) |
-| Exchange rates | Central Bank of Sri Lanka |
+| Exchange rates | open.er-api.com |
 | FD rates | Local commercial banks |
 | News | Aggregated feeds |
 | Traffic notices | RDA (Road Development Authority) |
 | Water notices | NWSDB (National Water Supply & Drainage Board) |
 | Health alerts | Ministry of Health — Epidemiology Unit |
 | Weather | [Open-Meteo API](https://open-meteo.com/) |
-| Disaster alerts | DMC (Disaster Management Centre) |
+| Disaster alerts | Department of Meteorology (meteo.gov.lk) |
 | Cricket | [ESPNcricinfo](https://www.espncricinfo.com/) |
-| Holidays | Official public holiday calendar |
+| Holidays | Nager.at public holiday API |
 
 ---
 

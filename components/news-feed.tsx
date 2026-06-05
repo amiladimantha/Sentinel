@@ -142,15 +142,15 @@ export function NewsFeed({ initialNews }: { initialNews: NewsItem[] }) {
             const config = CATEGORY_CONFIG[selectedItem.category];
             const Icon = config.icon;
             return (
-              <DialogContent className="max-w-lg">
+              <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] flex flex-col">
                 {selectedItem.imageUrl && (
                   <img
                     src={selectedItem.imageUrl}
                     alt=""
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="w-full h-48 object-cover rounded-lg shrink-0"
                   />
                 )}
-                <DialogHeader>
+                <DialogHeader className="shrink-0">
                   <div className="flex items-center gap-2 mb-2">
                     <div
                       className={`flex h-7 w-7 items-center justify-center rounded-full ${
@@ -177,7 +177,7 @@ export function NewsFeed({ initialNews }: { initialNews: NewsItem[] }) {
                 <DialogDescription className="sr-only">
                   Full news article details
                 </DialogDescription>
-                <div className="space-y-4">
+                <div className="space-y-4 overflow-y-auto min-h-0 flex-1">
                   <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
                     {selectedItem.summary}
                   </p>

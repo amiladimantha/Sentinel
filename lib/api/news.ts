@@ -1,9 +1,12 @@
 import type { NewsItem } from "@/lib/types";
 
-const ADA_DERANA_RSS = "https://www.adaderana.lk/rss.php";
+const RSS_FEEDS = [
+  { url: "https://bizenglish.adaderana.lk/feed/", source: "Ada Derana Biz" },
+  { url: "https://economynext.com/feed/", source: "EconomyNext" },
+];
 
 /**
- * Fetch latest news from Ada Derana's RSS feed.
+ * Fetch latest news from multiple Sri Lankan RSS feeds.
  * Parses XML manually (no external deps).
  * Falls back to empty array on failure.
  */
@@ -11,65 +14,85 @@ export async function getNewsItems(
   category?: "accidents" | "finance" | "general"
 ): Promise<NewsItem[]> {
   try {
-    const res = await fetch(ADA_DERANA_RSS, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
-    if (!res.ok) return [];
+    const feedResults = await Promise.allSettled(
+      RSS_FEEDS.map(async (feed) => {
+        const res = await fetch(feed.url, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
+        if (!res.ok) return [];
+        const xml = await res.text();
+        return parseFeed(xml, feed.source);
+      })
+    );
 
-    const xml = await res.text();
     const items: NewsItem[] = [];
-
-    // Parse RSS <item> blocks
-    const itemPattern = /<item>([\s\S]*?)<\/item>/gi;
-    let match: RegExpExecArray | null;
     let id = 1;
-
-    while ((match = itemPattern.exec(xml)) !== null && items.length < 15) {
-      const block = match[1];
-
-      const title = extractTag(block, "title");
-      const link = extractTag(block, "link");
-      const pubDate = extractTag(block, "pubDate");
-      const descRaw = extractTag(block, "description");
-
-      // Skip section-header items (e.g. "Local", "World", "Sports")
-      if (!title || /^(local|world|sports|business|entertainment|politics|finance)\s*(news)?$/i.test(title.trim())) continue;
-
-      // Extract image URL from description — discard if no actual filename (broken base URL)
-      const imgMatch = descRaw
-        ? descRaw.match(/<img[^>]+src=['"]([^'"]+)['"]/i)
-        : null;
-      const rawImgUrl = imgMatch ? imgMatch[1] : null;
-      const imageUrl = rawImgUrl && /\.\w{2,5}(\?|$)/.test(rawImgUrl) ? rawImgUrl : null;
-
-      // Strip HTML from description
-      const summary = descRaw
-        ? descRaw.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").replace(/\s*MORE\.\.\s*$/i, "").trim()
-        : "";
-
-      // Skip items whose stripped description is just a category label (e.g. "LOCAL", "WORLD")
-      if (/^[A-Z]{3,12}$/.test(summary)) continue;
-
-      // Categorise based on keywords
-      const cat = categorise(title + " " + summary);
-
-      items.push({
-        id: String(id++),
-        title,
-        summary: summary || title,
-        imageUrl,
-        category: cat,
-        source: "Ada Derana",
-        url: link || "#",
-        publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-      });
+    for (const result of feedResults) {
+      if (result.status === "fulfilled") {
+        for (const item of result.value) {
+          items.push({ ...item, id: String(id++) });
+        }
+      }
     }
+
+    // Sort by date descending and limit
+    items.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    const limited = items.slice(0, 15);
 
     if (category) {
-      return items.filter((item) => item.category === category);
+      return limited.filter((item) => item.category === category);
     }
-    return items;
+    return limited;
   } catch {
     return [];
   }
+}
+
+function parseFeed(xml: string, source: string): NewsItem[] {
+  const items: NewsItem[] = [];
+  const itemPattern = /<item>([\s\S]*?)<\/item>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = itemPattern.exec(xml)) !== null && items.length < 10) {
+    const block = match[1];
+
+    const title = extractTag(block, "title");
+    const link = extractTag(block, "link");
+    const pubDate = extractTag(block, "pubDate");
+    const descRaw = extractTag(block, "description");
+
+    // Skip section-header items (e.g. "Local", "World", "Sports")
+    if (!title || /^(local|world|sports|business|entertainment|politics|finance)\s*(news)?$/i.test(title.trim())) continue;
+
+    // Extract image URL from description — discard if no actual filename (broken base URL)
+    const imgMatch = descRaw
+      ? descRaw.match(/<img[^>]+src=['"]([^'"]+)['"]/i)
+      : null;
+    const rawImgUrl = imgMatch ? imgMatch[1] : null;
+    const imageUrl = rawImgUrl && /\.\w{2,5}(\?|$)/.test(rawImgUrl) ? rawImgUrl : null;
+
+    // Strip HTML from description
+    const summary = descRaw
+      ? descRaw.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/<[^>]+>/g, "").replace(/\s*MORE\.\.\s*$/i, "").trim()
+      : "";
+
+    // Skip items whose stripped description is just a category label (e.g. "LOCAL", "WORLD")
+    if (/^[A-Z]{3,12}$/.test(summary)) continue;
+
+    // Categorise based on keywords
+    const cat = categorise(title + " " + summary);
+
+    items.push({
+      id: "0",
+      title,
+      summary: summary || title,
+      imageUrl,
+      category: cat,
+      source,
+      url: link || "#",
+      publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+    });
+  }
+
+  return items;
 }
 
 function extractTag(xml: string, tag: string): string {
