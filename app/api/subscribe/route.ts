@@ -1,21 +1,15 @@
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
+import { readRuntimeJson, writeRuntimeJson } from "@/lib/api/runtime-json";
 
-const SUBS_FILE = path.join(process.cwd(), "data", "push-subscriptions.json");
+const SUBS_FILE = "push-subscriptions.json";
 
 async function readSubscriptions(): Promise<PushSubscriptionJSON[]> {
-  try {
-    const data = await fs.readFile(SUBS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
+  const subs = await readRuntimeJson<PushSubscriptionJSON[]>(SUBS_FILE);
+  return Array.isArray(subs) ? subs : [];
 }
 
 async function writeSubscriptions(subs: PushSubscriptionJSON[]) {
-  await fs.mkdir(path.dirname(SUBS_FILE), { recursive: true });
-  await fs.writeFile(SUBS_FILE, JSON.stringify(subs, null, 2));
+  await writeRuntimeJson(SUBS_FILE, subs);
 }
 
 export async function POST(request: Request) {
@@ -29,8 +23,8 @@ export async function POST(request: Request) {
     const subs = await readSubscriptions();
 
     // Avoid duplicates
-    const exists = subs.some((s) => s.endpoint === subscription.endpoint);
-    if (!exists) {
+    const endpoints = new Set(subs.map((s) => s.endpoint));
+    if (!endpoints.has(subscription.endpoint)) {
       subs.push(subscription);
       await writeSubscriptions(subs);
     }

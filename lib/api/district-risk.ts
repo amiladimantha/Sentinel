@@ -1,6 +1,7 @@
 import type { DistrictRisk } from "@/lib/types";
 
 const CONTENT_JSON_URL = "https://www.meteo.gov.lk/content.json";
+const MAX_FORECAST_TEXT_LENGTH = 10_000;
 
 /** Province → constituent districts mapping */
 const PROVINCE_DISTRICTS: Record<string, string[]> = {
@@ -59,7 +60,7 @@ export async function getDistrictRisks(): Promise<DistrictRisk[]> {
     if (forecast) {
       const enMatch = forecast.match(/WEATHER FORECAST[\s\S]*?(?=\n\n\d{4}|$)/i);
       if (enMatch) {
-        const enText = enMatch[0];
+        const enText = enMatch[0].slice(0, MAX_FORECAST_TEXT_LENGTH);
         parseForecastSentences(enText, risks);
       }
     }
@@ -102,8 +103,6 @@ function parseForecastSentences(
   const sentences = text.split(/\.(?:\s|$)/).filter(Boolean);
 
   for (const sentence of sentences) {
-    const lower = sentence.toLowerCase();
-
     // Determine intensity
     let level: RiskLevel = "none";
     let reason = "";

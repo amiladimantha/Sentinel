@@ -1,9 +1,9 @@
-import { readFile, writeFile } from "fs/promises";
-import { join } from "path";
+import { dedupeInFlight } from "@/lib/api/dedupe";
+import { readRuntimeJson, writeRuntimeJson } from "@/lib/api/runtime-json";
 import type { FuelPrice } from "@/lib/types";
 
 const CEYPETCO_URL = "https://ceypetco.gov.lk/marketing-sales/";
-const DATA_FILE = join(process.cwd(), "data", "fuel-prices.json");
+const DATA_FILE = "fuel-prices.json";
 
 /** Map Ceypetco fuel names to our standard types */
 const FUEL_NAME_MAP: Record<string, FuelPrice["fuelType"]> = {
@@ -20,22 +20,21 @@ interface StoredFuelData {
 }
 
 async function readStoredPrices(): Promise<StoredFuelData> {
-  try {
-    const raw = await readFile(DATA_FILE, "utf-8");
-    const parsed = JSON.parse(raw);
-    return {
-      prices: parsed.prices ?? {},
-      history: parsed.history ?? {},
-      lastUpdated: parsed.lastUpdated ?? "",
-    };
-  } catch {
+  const parsed = await readRuntimeJson<Partial<StoredFuelData>>(DATA_FILE);
+  if (!parsed) {
     return { prices: {}, history: {}, lastUpdated: "" };
   }
+
+  return {
+    prices: parsed.prices ?? {},
+    history: parsed.history ?? {},
+    lastUpdated: parsed.lastUpdated ?? "",
+  };
 }
 
 async function writeStoredPrices(data: StoredFuelData): Promise<void> {
   try {
-    await writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+    await writeRuntimeJson(DATA_FILE, data);
   } catch {
     // non-critical, ignore write errors
   }
@@ -46,7 +45,11 @@ async function writeStoredPrices(data: StoredFuelData): Promise<void> {
  * Only Ceypetco prices are shown (LIOC prices are not publicly accessible).
  * Compares with stored JSON to compute price differences.
  */
-export async function getFuelPrices(): Promise<FuelPrice[]> {
+export function getFuelPrices(): Promise<FuelPrice[]> {
+  return dedupeInFlight("fuel-prices", getFuelPricesFresh);
+}
+
+async function getFuelPricesFresh(): Promise<FuelPrice[]> {
   try {
     const res = await fetch(CEYPETCO_URL, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
     if (!res.ok) return [];

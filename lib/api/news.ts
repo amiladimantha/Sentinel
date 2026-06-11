@@ -100,50 +100,47 @@ function extractTag(xml: string, tag: string): string {
   return m ? m[1].trim() : "";
 }
 
+const FINANCE_PATTERNS = [
+  /\b(?:rupee|dollar|euro|sterling|forex)\b/,
+  /us\$|usd\b|\$\s*\d/,
+  /\b(?:million|billion)\s+(?:dollar|grant|loan|aid|fund|rupee)/,
+  /\b(?:grant|aid\s+package|financial\s+aid|foreign\s+aid)\b/,
+  /\b(?:stock\s+(?:market|exchange)|colombo\s+stock|cse\b|share\s+price)\b/,
+  /\b(?:inflation|deflation|gdp|imf|world\s+bank|central\s+bank)\b/,
+  /\b(?:interest\s+rate|exchange\s+rate|lending\s+rate|bank\s+rate)\b/,
+  /\b(?:budget|fiscal|monetary|treasury|bond|tariff|customs\s+duty)\b/,
+  /\b(?:export|import|trade\s+(?:deficit|surplus|balance))\b/,
+  /\b(?:economic|economy|investment|finance\s+minister|finance\s+ministry)\b/,
+  /\b(?:loan|debt|credit\s+rating|foreign\s+(?:exchange|reserves?|debt))\b/,
+  /\b(?:revenue|tax(?:ation)?|vat\b|customs|excise)\b/,
+];
+
+const ACCIDENT_PATTERNS = [
+  /\baccident\b/,
+  /\b(?:crash(?:es|ed)?|collision|collide[sd]?)\b/,
+  /\b(?:injur(?:ed|ies|y)|hospitaliz(?:ed|ation))\b/,
+  /\b(?:died|death\s+toll|death\s+of|killed\s+in|found\s+dead|dead\s+bod(?:y|ies))\b/,
+  /\b(?:caught\s+fire|house\s+fire|building\s+(?:fire|blaze)|factory\s+fire|fire\s+(?:destroyed|killed|breaks?\s+out|breaks?\s+in|accident|truck|engine)|blaze\s+(?:at|in|kills?)|arson)\b/,
+  /\b(?:drown(?:ed|ing)|flood(?:ed|ing)?|swept\s+away)\b/,
+  /\b(?:derail(?:ed|ment)?|train\s+accident|bus\s+accident|road\s+accident)\b/,
+  /\b(?:murder(?:ed|er|s)?|manslaughter|homicide)\b/,
+  /\b(?:robbery|robbed|theft|stolen|hijack(?:ed)?)\b/,
+  /\b(?:assault(?:ed)?|attack(?:ed)\s+(?:by|on)|physically\s+attack)\b/,
+  /\b(?:shooting|gunfire|gunshot|stabb(?:ed|ing)|explosion|blast(?:ed)?|bomb(?:ing)?)\b/,
+  /\b(?:landslide|tsunami)\b/,
+  /\bcyclone\s+(?:hits?|strikes?|kills?|caused?|devastat|damage|affect)/,
+];
+
 function categorise(text: string): "accidents" | "finance" | "general" {
   const t = text.toLowerCase();
 
   // ── Finance (checked first to avoid overlap e.g. "market crash") ──────────
-  if (
-    /\b(?:rupee|dollar|euro|sterling|forex)\b/.test(t) ||
-    /us\$|usd\b|\$\s*\d/.test(t) ||
-    /\b(?:million|billion)\s+(?:dollar|grant|loan|aid|fund|rupee)/.test(t) ||
-    /\b(?:grant|aid\s+package|financial\s+aid|foreign\s+aid)\b/.test(t) ||
-    /\b(?:stock\s+(?:market|exchange)|colombo\s+stock|cse\b|share\s+price)\b/.test(t) ||
-    /\b(?:inflation|deflation|gdp|imf|world\s+bank|central\s+bank)\b/.test(t) ||
-    /\b(?:interest\s+rate|exchange\s+rate|lending\s+rate|bank\s+rate)\b/.test(t) ||
-    /\b(?:budget|fiscal|monetary|treasury|bond|tariff|customs\s+duty)\b/.test(t) ||
-    /\b(?:export|import|trade\s+(?:deficit|surplus|balance))\b/.test(t) ||
-    /\b(?:economic|economy|investment|finance\s+minister|finance\s+ministry)\b/.test(t) ||
-    /\b(?:loan|debt|credit\s+rating|foreign\s+(?:exchange|reserves?|debt))\b/.test(t) ||
-    /\b(?:revenue|tax(?:ation)?|vat\b|customs|excise)\b/.test(t)
-  ) {
+  if (FINANCE_PATTERNS.some((pattern) => pattern.test(t))) {
     return "finance";
   }
 
   // ── Accidents, incidents, crime, disasters ────────────────────────────────
-  if (
-    // clear accident words
-    /\baccident\b/.test(t) ||
-    /\b(?:crash(?:es|ed)?|collision|collide[sd]?)\b/.test(t) ||
-    /\b(?:injur(?:ed|ies|y)|hospitaliz(?:ed|ation))\b/.test(t) ||
-    // death with strong signal — require "died", "killed", "death toll" etc.
-    /\b(?:died|death\s+toll|death\s+of|killed\s+in|found\s+dead|dead\s+bod(?:y|ies))\b/.test(t) ||
-    // physical fire events only
-    /\b(?:caught\s+fire|house\s+fire|building\s+(?:fire|blaze)|factory\s+fire|fire\s+(?:destroyed|killed|breaks?\s+out|breaks?\s+in|accident|truck|engine)|blaze\s+(?:at|in|kills?)|arson)\b/.test(t) ||
-    // drowning / flood
-    /\b(?:drown(?:ed|ing)|flood(?:ed|ing)?|swept\s+away)\b/.test(t) ||
-    // rail / road disasters
-    /\b(?:derail(?:ed|ment)?|train\s+accident|bus\s+accident|road\s+accident)\b/.test(t) ||
-    // crime
-    /\b(?:murder(?:ed|er|s)?|manslaughter|homicide)\b/.test(t) ||
-    /\b(?:robbery|robbed|theft|stolen|hijack(?:ed)?)\b/.test(t) ||
-    /\b(?:assault(?:ed)?|attack(?:ed)\s+(?:by|on)|physically\s+attack)\b/.test(t) ||
-    /\b(?:shooting|gunfire|gunshot|stabb(?:ed|ing)|explosion|blast(?:ed)?|bomb(?:ing)?)\b/.test(t) ||
-    // natural disasters — require event context, not just a mention
-    /\b(?:landslide|tsunami)\b/.test(t) ||
-    /\bcyclone\s+(?:hits?|strikes?|kills?|caused?|devastat|damage|affect)/i.test(t)
-  ) {
+  if (ACCIDENT_PATTERNS.some((pattern) => pattern.test(t))) {
     return "accidents";
   }
 

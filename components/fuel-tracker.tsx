@@ -3,6 +3,11 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getFuelPrices } from "@/lib/api/fuel";
 import { FuelChart } from "@/components/fuel-chart";
+import type { FuelPrice } from "@/lib/types";
+
+interface FuelTrackerProps {
+  prices?: FuelPrice[];
+}
 
 const FUEL_COLORS: Record<string, { bg: string; border: string; icon: string }> = {
   "Petrol 92": {
@@ -37,8 +42,8 @@ function formatDate(iso: string) {
   });
 }
 
-export async function FuelTracker() {
-  const prices = await getFuelPrices();
+export async function FuelTracker({ prices: initialPrices }: FuelTrackerProps = {}) {
+  const prices = initialPrices ?? await getFuelPrices();
 
   const fuelTypes = Array.from(new Set(prices.map((p) => p.fuelType)));
   const lastUpdated = prices[0]?.lastUpdated;

@@ -11,6 +11,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Sparkline } from "@/components/sparkline";
 import { getExchangeRates } from "@/lib/api/exchange-rates";
+import type { ExchangeRate } from "@/lib/types";
+
+interface ExchangeRatesProps {
+  rates?: ExchangeRate[];
+}
 
 const CURRENCY_FLAGS: Record<string, string> = {
   USD: "🇺🇸",
@@ -23,8 +28,8 @@ const CURRENCY_FLAGS: Record<string, string> = {
   CAD: "🇨🇦",
 };
 
-export async function ExchangeRates() {
-  const rates = await getExchangeRates();
+export async function ExchangeRates({ rates: initialRates }: ExchangeRatesProps = {}) {
+  const rates = initialRates ?? await getExchangeRates();
 
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
@@ -58,7 +63,6 @@ export async function ExchangeRates() {
             {rates.map((rate) => {
               const buyDiff = parseFloat((rate.buyingRate - rate.previousBuyingRate).toFixed(2));
               const sellDiff = parseFloat((rate.sellingRate - rate.previousSellingRate).toFixed(2));
-              const diff = buyDiff || sellDiff;
 
               return (
                 <TableRow

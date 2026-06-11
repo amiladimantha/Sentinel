@@ -11,18 +11,27 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setPermission("unsupported");
-      return;
-    }
-    setPermission(Notification.permission as PermState);
+    let active = true;
+    const timeout = setTimeout(() => {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        if (active) setPermission("unsupported");
+        return;
+      }
 
-    // Check if already subscribed
-    navigator.serviceWorker.ready.then((reg) => {
-      reg.pushManager.getSubscription().then((sub) => {
-        setIsSubscribed(!!sub);
+      if (active) setPermission(Notification.permission as PermState);
+
+      // Check if already subscribed
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.pushManager.getSubscription().then((sub) => {
+          if (active) setIsSubscribed(!!sub);
+        });
       });
-    });
+    }, 0);
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
   }, []);
 
   const subscribe = async () => {

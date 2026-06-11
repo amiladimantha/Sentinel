@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { describeWeather } from "@/lib/api/weather";
 import type { WeatherCity } from "@/lib/types";
 
-const DEFAULT_CITIES = ["Colombo", "Kandy", "Galle", "Jaffna"];
 const STORAGE_KEY = "iw-weather-custom";
 
 interface SavedCity {
@@ -36,18 +35,22 @@ export function WeatherWidget({ defaultCities }: WeatherWidgetProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchController = useRef<AbortController | null>(null);
 
   // Load saved custom cities from localStorage
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) setCustomCities(parsed);
+    const timeout = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) setCustomCities(parsed);
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
+    }, 0);
+    return () => clearTimeout(timeout);
   }, []);
 
   // Save custom cities
@@ -60,19 +63,18 @@ export function WeatherWidget({ defaultCities }: WeatherWidgetProps) {
   }, [customCities]);
 
   // Fetch weather for custom cities
-  const fetchCustomWeather = useCallback(async (cities: SavedCity[]) => {
+  const fetchCustomWeather = useCallback(async (cities: SavedCity[], signal: AbortSignal) => {
     if (cities.length === 0) {
       setCustomWeather([]);
       return;
     }
-    const controller = new AbortController();
     const params =
       "current=temperature_2m,relative_humidity_2m,weather_code,precipitation,wind_speed_10m&timezone=Asia%2FColombo";
     const results = await Promise.all(
       cities.map(({ name, lat, lon }) =>
         fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&${params}`,
-          { signal: controller.signal }
+          { signal }
         )
           .then((r) => r.json())
           .then((d) => ({
@@ -86,37 +88,69 @@ export function WeatherWidget({ defaultCities }: WeatherWidgetProps) {
           .catch(() => null)
       )
     );
-    setCustomWeather(results.filter((r): r is WeatherCity => r !== null));
-    return controller;
+    if (!signal.aborted) {
+      setCustomWeather(results.filter((r): r is WeatherCity => r !== null));
+    }
   }, []);
 
   useEffect(() => {
-    let controller: AbortController | undefined;
-    fetchCustomWeather(customCities).then((c) => { controller = c; });
-    return () => { controller?.abort(); };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      void fetchCustomWeather(customCities, controller.signal);
+    }, 0);
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [customCities, fetchCustomWeather]);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+      searchController.current?.abort();
+    };
+  }, []);
 
   // Debounced geocoding search
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+      searchTimeout.current = null;
+    }
+    searchController.current?.abort();
+    searchController.current = null;
     if (query.length < 2) {
       setSearchResults([]);
+      setIsSearching(false);
       return;
     }
     setIsSearching(true);
     searchTimeout.current = setTimeout(async () => {
+      searchTimeout.current = null;
+      const controller = new AbortController();
+      searchController.current = controller;
+      const timeout = setTimeout(() => controller.abort(), 5000);
       try {
         const res = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&country_code=LK&language=en`
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&country_code=LK&language=en`,
+          { signal: controller.signal }
         );
         const data = await res.json();
-        setSearchResults(data.results ?? []);
+        if (searchController.current === controller) {
+          setSearchResults(data.results ?? []);
+        }
       } catch {
-        setSearchResults([]);
+        if (searchController.current === controller) {
+          setSearchResults([]);
+        }
+      } finally {
+        clearTimeout(timeout);
+        if (searchController.current === controller) {
+          searchController.current = null;
+          setIsSearching(false);
+        }
       }
-      setIsSearching(false);
-      searchTimeout.current = null;
     }, 300);
   };
 

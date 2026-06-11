@@ -1,8 +1,8 @@
-import { readFile, writeFile } from "fs/promises";
-import { join } from "path";
+import { dedupeInFlight } from "@/lib/api/dedupe";
+import { readRuntimeJson, writeRuntimeJson } from "@/lib/api/runtime-json";
 import type { ElectricityTariff, ElectricityHikeHistory } from "@/lib/types";
 
-const DATA_FILE = join(process.cwd(), "data", "electricity-rates.json");
+const DATA_FILE = "electricity-rates.json";
 
 interface TariffBlock {
   units: string;
@@ -25,17 +25,12 @@ interface StoredElectricityData {
 }
 
 async function readStoredData(): Promise<StoredElectricityData | null> {
-  try {
-    const raw = await readFile(DATA_FILE, "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  return readRuntimeJson<StoredElectricityData>(DATA_FILE);
 }
 
 async function writeStoredData(data: StoredElectricityData): Promise<void> {
   try {
-    await writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+    await writeRuntimeJson(DATA_FILE, data);
   } catch {
     // non-critical, ignore write errors
   }
@@ -218,7 +213,11 @@ function buildTariffList(
  * Attempts to fetch live data from the PUCSL calculator JS (daily cache).
  * Falls back to the last successfully stored data in electricity-rates.json.
  */
-export async function getElectricityTariffs(): Promise<ElectricityTariff[]> {
+export function getElectricityTariffs(): Promise<ElectricityTariff[]> {
+  return dedupeInFlight("electricity-tariffs", getElectricityTariffsFresh);
+}
+
+async function getElectricityTariffsFresh(): Promise<ElectricityTariff[]> {
   const stored = await readStoredData();
 
   try {
@@ -250,7 +249,13 @@ export async function getElectricityTariffs(): Promise<ElectricityTariff[]> {
   return [];
 }
 
-export async function getElectricityHikeHistory(): Promise<
+export function getElectricityHikeHistory(): Promise<
+  ElectricityHikeHistory[]
+> {
+  return dedupeInFlight("electricity-hike-history", getElectricityHikeHistoryFresh);
+}
+
+async function getElectricityHikeHistoryFresh(): Promise<
   ElectricityHikeHistory[]
 > {
   const stored = await readStoredData();

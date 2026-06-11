@@ -1,6 +1,7 @@
 import type { HealthAlert } from "@/lib/types";
 
 const EPID_NEWS_URL = "https://www.epid.gov.lk/news/news";
+const MAX_HEALTH_HTML_LENGTH = 250_000;
 
 // Known EPID nav / static page slugs to exclude from news results
 const NAV_SLUGS = new Set([
@@ -25,7 +26,7 @@ export async function getHealthAlerts(): Promise<HealthAlert[]> {
       headers: { Cookie: "locale=en" },
     });
     if (!res.ok) return [];
-    const html = await res.text();
+    const html = (await res.text()).slice(0, MAX_HEALTH_HTML_LENGTH);
     const alerts: HealthAlert[] = [];
 
     // Strategy 1: Parse stripped text for "YYYY-MM-DD Title" pairs that appear

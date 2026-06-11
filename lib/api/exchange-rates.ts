@@ -1,9 +1,9 @@
-import { readFile, writeFile } from "fs/promises";
-import { join } from "path";
+import { dedupeInFlight } from "@/lib/api/dedupe";
+import { readRuntimeJson, writeRuntimeJson } from "@/lib/api/runtime-json";
 import type { ExchangeRate } from "@/lib/types";
 
 const ER_API_URL = "https://open.er-api.com/v6/latest/LKR";
-const DATA_FILE = join(process.cwd(), "data", "exchange-rates.json");
+const DATA_FILE = "exchange-rates.json";
 
 const CURRENCIES: { code: ExchangeRate["code"]; name: string }[] = [
   { code: "USD", name: "US Dollar" },
@@ -23,22 +23,21 @@ interface StoredRateData {
 }
 
 async function readStoredRates(): Promise<StoredRateData> {
-  try {
-    const raw = await readFile(DATA_FILE, "utf-8");
-    const parsed = JSON.parse(raw);
-    return {
-      rates: parsed.rates ?? {},
-      history: parsed.history ?? {},
-      lastUpdated: parsed.lastUpdated ?? "",
-    };
-  } catch {
+  const parsed = await readRuntimeJson<Partial<StoredRateData>>(DATA_FILE);
+  if (!parsed) {
     return { rates: {}, history: {}, lastUpdated: "" };
   }
+
+  return {
+    rates: parsed.rates ?? {},
+    history: parsed.history ?? {},
+    lastUpdated: parsed.lastUpdated ?? "",
+  };
 }
 
 async function writeStoredRates(data: StoredRateData): Promise<void> {
   try {
-    await writeFile(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
+    await writeRuntimeJson(DATA_FILE, data);
   } catch {
     // non-critical
   }
@@ -49,7 +48,11 @@ async function writeStoredRates(data: StoredRateData): Promise<void> {
  * Converts from LKR-based rates to buying/selling with a ~1.5% spread.
  * Compares with stored rates to detect changes.
  */
-export async function getExchangeRates(): Promise<ExchangeRate[]> {
+export function getExchangeRates(): Promise<ExchangeRate[]> {
+  return dedupeInFlight("exchange-rates", getExchangeRatesFresh);
+}
+
+async function getExchangeRatesFresh(): Promise<ExchangeRate[]> {
   try {
     const res = await fetch(ER_API_URL, { next: { revalidate: 900 }, signal: AbortSignal.timeout(10000) });
     if (!res.ok) return [];

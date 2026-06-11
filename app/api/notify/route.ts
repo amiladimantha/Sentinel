@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
-import fs from "fs/promises";
-import path from "path";
+import { readRuntimeJson, writeRuntimeJson } from "@/lib/api/runtime-json";
 
-const SUBS_FILE = path.join(process.cwd(), "data", "push-subscriptions.json");
+const SUBS_FILE = "push-subscriptions.json";
+const NOTIFICATION_BATCH_SIZE = 100;
 
 let vapidConfigured = false;
 
@@ -25,16 +25,12 @@ function ensureVapid() {
 }
 
 async function readSubscriptions(): Promise<PushSubscriptionJSON[]> {
-  try {
-    const data = await fs.readFile(SUBS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
+  const subs = await readRuntimeJson<PushSubscriptionJSON[]>(SUBS_FILE);
+  return Array.isArray(subs) ? subs : [];
 }
 
 async function writeSubscriptions(subs: PushSubscriptionJSON[]) {
-  await fs.writeFile(SUBS_FILE, JSON.stringify(subs, null, 2));
+  await writeRuntimeJson(SUBS_FILE, subs);
 }
 
 export async function POST(request: Request) {
@@ -55,11 +51,16 @@ export async function POST(request: Request) {
       url: url || "/",
     });
 
-    const results = await Promise.allSettled(
-      subs.map((sub) =>
-        webpush.sendNotification(sub as webpush.PushSubscription, payload)
-      )
-    );
+    const results: PromiseSettledResult<unknown>[] = [];
+    for (let i = 0; i < subs.length; i += NOTIFICATION_BATCH_SIZE) {
+      const batch = subs.slice(i, i + NOTIFICATION_BATCH_SIZE);
+      const batchResults = await Promise.allSettled(
+        batch.map((sub) =>
+          webpush.sendNotification(sub as webpush.PushSubscription, payload)
+        )
+      );
+      results.push(...batchResults);
+    }
 
     // Remove expired/invalid subscriptions
     const validSubs = subs.filter((_, i) => {

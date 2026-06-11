@@ -19,6 +19,9 @@ import { FDRatesWidget } from "@/components/fd-rates-widget";
 import { RiskMapServer } from "@/components/risk-map-server";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { getNewsItems } from "@/lib/api/news";
+import { getExchangeRates } from "@/lib/api/exchange-rates";
+import { getFuelPrices } from "@/lib/api/fuel";
+import { getWeather } from "@/lib/api/weather";
 import {
   getElectricityTariffs,
   getElectricityHikeHistory,
@@ -28,10 +31,13 @@ import {
 export const revalidate = 900;
 
 export default async function Home() {
-  const [news, tariffs, hikeHistory] = await Promise.all([
+  const [news, tariffs, hikeHistory, fuelPrices, exchangeRates, defaultWeather] = await Promise.all([
     getNewsItems(),
     getElectricityTariffs(),
     getElectricityHikeHistory(),
+    getFuelPrices(),
+    getExchangeRates(),
+    getWeather(),
   ]);
 
   const now = new Date();
@@ -74,16 +80,16 @@ export default async function Home() {
           <DisasterAlerts />
           {/* Quick glance: one card from each category */}
           <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
-            <FuelTracker />
-            <ExchangeRates />
-            <WeatherWidgetServer />
+            <FuelTracker prices={fuelPrices} />
+            <ExchangeRates rates={exchangeRates} />
+            <WeatherWidgetServer defaultCities={defaultWeather} />
           </div>
         </>
       }
       energy={
         <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
           <div className="flex flex-col gap-4">
-            <FuelTracker />
+            <FuelTracker prices={fuelPrices} />
             <LPGTracker />
           </div>
           <ElectricityMonitor tariffs={tariffs} hikeHistory={hikeHistory} />
@@ -92,8 +98,8 @@ export default async function Home() {
       }
       finance={
         <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
-          <ExchangeRates />
-          <CurrencyConverterServer />
+          <ExchangeRates rates={exchangeRates} />
+          <CurrencyConverterServer rates={exchangeRates} />
           <FDRatesWidget />
         </div>
       }
@@ -110,7 +116,7 @@ export default async function Home() {
       }
       weather={
         <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
-          <WeatherWidgetServer />
+          <WeatherWidgetServer defaultCities={defaultWeather} />
           <RiskMapServer />
         </div>
       }

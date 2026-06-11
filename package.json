@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
+    "dev:low-memory": "node --max-old-space-size=1536 node_modules/next/dist/bin/next dev",
+    "dev:worker-threads": "set SENTINEL_TURBOPACK_RUNTIME=workerThreads&& set SENTINEL_TURBOPACK_MEMORY_MB=1536&& node --max-old-space-size=1536 node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

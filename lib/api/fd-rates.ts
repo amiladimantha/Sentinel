@@ -1,14 +1,14 @@
-import { readFile, writeFile } from "fs/promises";
-import { join } from "path";
+import { dedupeInFlight } from "@/lib/api/dedupe";
+import { readRuntimeJson, writeRuntimeJson } from "@/lib/api/runtime-json";
 import type { FDRateData, FDRate } from "@/lib/types";
 
-const DATA_FILE = join(process.cwd(), "data", "fd-rates.json");
+const DATA_FILE = "fd-rates.json";
 const CACHE_MAX_AGE = 6 * 60 * 60 * 1000; // 6 hours
 
 async function readCache(): Promise<FDRateData | null> {
   try {
-    const raw = await readFile(DATA_FILE, "utf-8");
-    const data: FDRateData = JSON.parse(raw);
+    const data = await readRuntimeJson<FDRateData>(DATA_FILE);
+    if (!data) return null;
     const age = Date.now() - new Date(data.lastVerified).getTime();
     if (age < CACHE_MAX_AGE) return data;
   } catch {}
@@ -17,7 +17,7 @@ async function readCache(): Promise<FDRateData | null> {
 
 async function writeCache(data: FDRateData): Promise<void> {
   try {
-    await writeFile(DATA_FILE, JSON.stringify(data, null, 2));
+    await writeRuntimeJson(DATA_FILE, data);
   } catch {}
 }
 
@@ -167,15 +167,19 @@ async function scrapeNTB(): Promise<FDRate | null> {
 // --- Fallback banks from cached JSON ---
 async function getFallbackBanks(): Promise<FDRate[]> {
   try {
-    const raw = await readFile(DATA_FILE, "utf-8");
-    const data: FDRateData = JSON.parse(raw);
+    const data = await readRuntimeJson<FDRateData>(DATA_FILE);
+    if (!data) return [];
     return data.banks;
   } catch {
     return [];
   }
 }
 
-export async function getFDRates(): Promise<FDRateData> {
+export function getFDRates(): Promise<FDRateData> {
+  return dedupeInFlight("fd-rates", getFDRatesFresh);
+}
+
+async function getFDRatesFresh(): Promise<FDRateData> {
   // Return cache if fresh
   const cached = await readCache();
   if (cached) return cached;

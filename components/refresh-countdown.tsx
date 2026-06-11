@@ -5,29 +5,28 @@ import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 
 const REVALIDATE_SECONDS = 900; // 15 minutes
+const AUTO_REFRESH_ENABLED =
+  process.env.NODE_ENV === "production" ||
+  process.env.NEXT_PUBLIC_ENABLE_AUTO_REFRESH === "true";
 
 export function RefreshCountdown() {
   const router = useRouter();
   const [secondsLeft, setSecondsLeft] = useState(REVALIDATE_SECONDS);
 
   useEffect(() => {
+    if (!AUTO_REFRESH_ENABLED) return;
+
     const interval = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
-          return 0;
+          router.refresh();
+          return REVALIDATE_SECONDS;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (secondsLeft === 0) {
-      router.refresh();
-      setSecondsLeft(REVALIDATE_SECONDS);
-    }
-  }, [secondsLeft, router]);
+  }, [router]);
 
   const handleClick = () => {
     router.refresh();

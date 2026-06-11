@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   useCallback,
   type ReactNode,
 } from "react";
@@ -29,14 +28,6 @@ const LanguageContext = createContext<LanguageContextValue>({
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
   const [t, setT] = useState<Dictionary>(en);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("islandwatch-locale") as Locale | null;
-    if (stored && stored === "en") {
-      setLocaleState(stored);
-      setT(getDictionary(stored));
-    }
-  }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);

@@ -1,3 +1,4 @@
+import { dedupeInFlight } from "@/lib/api/dedupe";
 import type { WeatherCity } from "@/lib/types";
 
 export const ALL_CITIES: { name: string; lat: number; lon: number }[] = [
@@ -26,7 +27,12 @@ export const ALL_CITIES: { name: string; lat: number; lon: number }[] = [
 const PARAMS =
   "current=temperature_2m,relative_humidity_2m,weather_code,precipitation,wind_speed_10m&timezone=Asia%2FColombo";
 
-export async function getWeather(cityNames?: string[]): Promise<WeatherCity[]> {
+export function getWeather(cityNames?: string[]): Promise<WeatherCity[]> {
+  const key = cityNames ? cityNames.slice().sort().join(",") : "default";
+  return dedupeInFlight(`weather:${key}`, () => getWeatherFresh(cityNames));
+}
+
+async function getWeatherFresh(cityNames?: string[]): Promise<WeatherCity[]> {
   const cities = cityNames
     ? ALL_CITIES.filter((c) => cityNames.includes(c.name))
     : ALL_CITIES.slice(0, 4); // default: first 4
